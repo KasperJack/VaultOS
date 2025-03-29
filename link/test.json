@@ -1,0 +1,26 @@
+{
+    "Allusion": {
+        "Paths": [
+            {
+                "SourcePath": "C:\\Users\\$user\\AppData\\Roaming\\Allusion",
+                "TargetPath": "$scriptDriveLetter\\Apps\\Allusion\\Allusion"
+            },
+            {
+                "SourcePath": "C:\\Users\\$user\\AppData\\Local\\Temp\\Allusion\\thumbnails",
+                "TargetPath": "$scriptDriveLetter\\Apps\\Allusion\\thumbnails"
+            }
+        ]
+    },
+
+
+
+    
+    "AnotherSoftware": {
+        "Paths": [
+            {
+                "SourcePath": "C:\\Users\\$user\\AppData\\Roaming\\AnotherSoftware",
+                "TargetPath": "$scriptDriveLetter\\Apps\\AnotherSoftware\\Roaming"
+            }
+        ]
+    }
+}
