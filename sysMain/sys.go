@@ -1,118 +1,291 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
-	"gopkg.in/yaml.v3"
 
+	"gopkg.in/yaml.v3"
 )
 
-type Software struct {
+// Configuration paths
+var (
+	DriveLetter   string
+	PackageDir    string
+	SoftwareYAML  string
+	JunctionsJSON string
+	AppsDir       string
+	GamesDir      string
+)
+
+// SoftwareConfig represents the structure of the YAML configuration file
+type SoftwareConfig map[string]SoftwareDetails
+
+// SoftwareDetails holds the details of a software package
+type SoftwareDetails struct {
 	Portable   bool     `yaml:"portable"`
 	Category   string   `yaml:"category"`
 	Executable string   `yaml:"executable"`
 	Junctions  []string `yaml:"junctions,omitempty"`
 }
 
-type JunctionEntry struct {
-	Paths []struct {
-		SourcePath string `json:"SourcePath"`
-		TargetPath string `json:"TargetPath"`
-	} `json:"Paths"`
-}
-
-func getDriveLetter() string {
-	cwd, err := os.Getwd()
+// Initialize paths with the correct drive letter
+func initPaths() {
+	// Get the current executable path to determine the drive letter
+	ex, err := os.Executable()
 	if err != nil {
-		fmt.Println("Error getting current directory:", err)
+		fmt.Println("Error getting executable path:", err)
 		os.Exit(1)
 	}
-	return strings.ToUpper(cwd[:2])
-}
 
-func installSoftware(name string) {
-	driveLetter := getDriveLetter()
-	packageDir := filepath.Join(driveLetter, "system", "package")
-	softwareFile := filepath.Join(driveLetter, "system", "config", "software.yaml")
-	junctionFile := filepath.Join(driveLetter, "system", "config", "junctions.json")
-	appsDir := filepath.Join(driveLetter, "system", "software", "apps")
-	gamesDir := filepath.Join(driveLetter, "system", "software", "games")
-
-	softwarePath := filepath.Join(packageDir, name, name+".yaml")
-	data, err := os.ReadFile(softwarePath)
-	if err != nil {
-		fmt.Println("Error reading software YAML:", err)
-		return
+	// Extract drive letter from the executable path
+	if runtime.GOOS == "windows" {
+		DriveLetter = strings.Split(ex, ":")[0] + ":"
+	} else {
+		// For non-Windows systems, use a default or empty string
+		DriveLetter = ""
 	}
 
-	var software Software
-	if err := yaml.Unmarshal(data, &software); err != nil {
-		fmt.Println("Error parsing YAML:", err)
-		return
-	}
-
-	destDir := appsDir
-	if software.Category == "Games" {
-		destDir = gamesDir
-	}
-	installPath := filepath.Join(destDir, name)
-	if err := os.Rename(filepath.Join(packageDir, name), installPath); err != nil {
-		fmt.Println("Error moving software:", err)
-		return
-	}
-
-	software.Executable = filepath.Join(installPath, software.Executable)
-
-	softwareData, err := yaml.Marshal(&software)
-	if err != nil {
-		fmt.Println("Error marshaling YAML:", err)
-		return
-	}
-	if err := os.WriteFile(softwareFile, softwareData, 0644); err != nil {
-		fmt.Println("Error writing software YAML:", err)
-		return
-	}
-
-	if !software.Portable {
-		junctions := map[string]JunctionEntry{}
-		jsonData, err := os.ReadFile(junctionFile)
-		if err == nil {
-			json.Unmarshal(jsonData, &junctions)
-		}
-
-		var paths []struct {
-			SourcePath string `json:"SourcePath"`
-			TargetPath string `json:"TargetPath"`
-		}
-		for _, j := range software.Junctions {
-			paths = append(paths, struct {
-				SourcePath string `json:"SourcePath"`
-				TargetPath string `json:"TargetPath"`
-			}{SourcePath: j, TargetPath: filepath.Join(installPath, "data", filepath.Base(j))})
-		}
-		junctions[name] = JunctionEntry{Paths: paths}
-
-		newJsonData, err := json.MarshalIndent(junctions, "", "  ")
-		if err != nil {
-			fmt.Println("Error marshaling JSON:", err)
-			return
-		}
-		if err := os.WriteFile(junctionFile, newJsonData, 0644); err != nil {
-			fmt.Println("Error writing junction JSON:", err)
-			return
-		}
-	}
-
-	fmt.Println(name, "installed successfully!")
+	// Set the paths with the detected drive letter
+	PackageDir = filepath.Join(DriveLetter, "\\system\\package")
+	SoftwareYAML = filepath.Join(DriveLetter, "\\system\\config\\software.yaml")
+	JunctionsJSON = filepath.Join(DriveLetter, "\\system\\config\\junctions.json")
+	AppsDir = filepath.Join(DriveLetter, "\\system\\software\\apps")
+	GamesDir = filepath.Join(DriveLetter, "\\System\\software\\games")
 }
 
 func main() {
-	if len(os.Args) < 3 || os.Args[1] != "install" {
-		fmt.Println("Usage: tool install <software_name>")
-		return
+	// Initialize paths
+	initPaths()
+
+	// Define command-line flags
+	installCmd := flag.NewFlagSet("install", flag.ExitOnError)
+
+	// Parse command-line arguments
+	if len(os.Args) < 2 {
+		fmt.Println("Expected 'install' subcommand")
+		os.Exit(1)
 	}
-	installSoftware(os.Args[2])
+
+	// Handle different subcommands
+	switch os.Args[1] {
+	case "install":
+		installCmd.Parse(os.Args[2:])
+		if installCmd.NArg() < 1 {
+			fmt.Println("Expected software name")
+			os.Exit(1)
+		}
+		softwareName := installCmd.Arg(0)
+		installSoftware(softwareName)
+	default:
+		fmt.Println("Expected 'install' subcommand")
+		os.Exit(1)
+	}
 }
+
+// installPortable processes a portable software installation.
+// It prints out the software name, category, executable, and the current directory (where the YAML is).
+func installPortable(softwareName, category, executable, currentPath string) {
+	fmt.Println("Installing Portable Software:")
+	fmt.Printf("  Software Name: %s\n", softwareName)
+	fmt.Printf("  Category: %s\n", category)
+	fmt.Printf("  Executable: %s\n", executable)
+	fmt.Printf("  YAML Directory: %s\n", currentPath)
+}
+
+// installNonPortable processes a non-portable software installation.
+// It prints out the software name, category, executable, the current directory, and each junction.
+func installNonPortable(softwareName, category, executable, currentPath string, junctions []string) {
+	fmt.Println("Installing Non-Portable Software:")
+	fmt.Printf("  Software Name: %s\n", softwareName)
+	fmt.Printf("  Category: %s\n", category)
+	fmt.Printf("  Executable: %s\n", executable)
+	fmt.Printf("  YAML Directory: %s\n", currentPath)
+	if len(junctions) > 0 {
+		fmt.Println("  Junctions:")
+		for i, junction := range junctions {
+			fmt.Printf("    %d: %s\n", i+1, junction)
+		}
+	} else {
+		fmt.Println("  No junctions provided.")
+	}
+}
+
+// ... (previous code remains unchanged)
+
+// Function to handle software installation
+func installSoftware(name string) {
+	fmt.Printf("Installing software: %s\n", name)
+
+	// First, try to use the original case version for directory and file access
+	softwareDir := filepath.Join(PackageDir, name)
+	_, err := os.Stat(softwareDir)
+
+	// If the directory doesn't exist, try case variants
+	if err != nil && os.IsNotExist(err) {
+		// Check if directory exists with first letter capitalized
+		capitalized := strings.ToUpper(name[:1]) + name[1:]
+		softwareDirCap := filepath.Join(PackageDir, capitalized)
+		_, err = os.Stat(softwareDirCap)
+
+		if err == nil {
+			// Found with capitalized first letter
+			name = capitalized
+			softwareDir = softwareDirCap
+		} else {
+			// Check for all uppercase version
+			uppercase := strings.ToUpper(name)
+			softwareDirUpper := filepath.Join(PackageDir, uppercase)
+			_, err = os.Stat(softwareDirUpper)
+
+			if err == nil {
+				// Found with all uppercase
+				name = uppercase
+				softwareDir = softwareDirUpper
+			}
+		}
+	}
+
+	// Check if the software package directory exists after potential case adjustments
+	dirInfo, err := os.Stat(softwareDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("Error: Software package directory '%s' does not exist\n", softwareDir)
+		} else {
+			fmt.Printf("Error checking software directory: %v\n", err)
+		}
+		os.Exit(1)
+	}
+
+	// Verify it's a directory
+	if !dirInfo.IsDir() {
+		fmt.Printf("Error: '%s' is not a directory\n", softwareDir)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Found software package directory: %s\n", softwareDir)
+
+	// Check for the yaml file matching the software name
+	yamlFile := filepath.Join(softwareDir, name+".yaml")
+	_, err = os.Stat(yamlFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Try different case variants for the yaml file
+			variants := []string{
+				strings.ToLower(name) + ".yaml",
+				strings.ToUpper(name) + ".yaml",
+				strings.ToUpper(name[:1]) + name[1:] + ".yaml",
+			}
+
+			found := false
+			for _, variant := range variants {
+				testPath := filepath.Join(softwareDir, variant)
+				_, err = os.Stat(testPath)
+				if err == nil {
+					yamlFile = testPath
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				fmt.Printf("Error: YAML file for '%s' does not exist\n", name)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Printf("Error checking YAML file: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	fmt.Printf("Found software configuration file: %s\n", yamlFile)
+
+	// Read and parse the YAML file
+	yamlData, err := os.ReadFile(yamlFile)
+	if err != nil {
+		fmt.Printf("Error reading YAML file: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("YAML file content read successfully\n")
+
+	// Parse the YAML content
+	var config SoftwareConfig
+	err = yaml.Unmarshal(yamlData, &config)
+	if err != nil {
+		fmt.Printf("Error parsing YAML file: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("YAML file parsed successfully\n")
+
+	// Try to find the software name in the YAML, checking different case variants
+	// First, try direct match
+	details, exists := config[name]
+
+	// If not found, try case-insensitive search
+	if !exists {
+		actualKey := ""
+		for key := range config {
+			if strings.EqualFold(key, name) {
+				actualKey = key
+				details = config[key]
+				exists = true
+				break
+			}
+		}
+
+		if exists {
+			fmt.Printf("Found software '%s' in YAML as '%s'\n", name, actualKey)
+		}
+	} else {
+		fmt.Printf("Software '%s' found in YAML configuration\n", name)
+	}
+
+	// Exit if software not found after case-insensitive search
+	if !exists {
+		fmt.Printf("Error: Software name '%s' not found in YAML configuration\n", name)
+		os.Exit(1)
+	}
+
+	// Check for required fields
+	if details.Executable == "" {
+		fmt.Printf("Error: No executable specified for '%s'\n", name)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Executable: %s\n", details.Executable)
+	fmt.Printf("Portable: %t\n", details.Portable)
+	fmt.Printf("Category: %s\n", details.Category)
+
+	// Validate junctions based on the portability
+	if details.Portable {
+		// Portable software must NOT have junctions
+		if len(details.Junctions) > 0 {
+			fmt.Printf("Error: Portable software '%s' should not have junctions defined\n", name)
+			os.Exit(1)
+		}
+	} else {
+		// Non-portable software MUST have at least one junction
+		if len(details.Junctions) == 0 {
+			fmt.Printf("Error: Non-portable software '%s' must have at least one junction defined\n", name)
+			os.Exit(1)
+		}
+	}
+
+	// Determine which installation function to use based on the portable flag
+	if details.Portable {
+		installPortable(name, details.Category, details.Executable, softwareDir)
+	} else {
+		installNonPortable(name, details.Category, details.Executable, softwareDir, details.Junctions)
+	}
+
+	// Placeholder for further installation logic
+	fmt.Println("YAML validation complete - Ready to install software")
+}
+
+// ... (rest of the code remains unchanged)
+
