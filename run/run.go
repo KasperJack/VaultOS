@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+
+
+
+// DriveExec
+// AppLauncher
+// Run
+
+
+// Phantom → A module that redirects commands dynamically.
+
 func main() {
 
 	if len(os.Args) < 2 {

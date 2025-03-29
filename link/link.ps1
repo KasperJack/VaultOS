@@ -7,18 +7,38 @@ param (
     [string]$SoftwareFilter = ""
 )
 
-# global conf
+# Global Configuration 
 $global:Config = @{
-    PathsJsonFile = "$PSScriptRoot\test.json"  #JSON config PR: in ScriptDriveLetter\System\Config
-    CleanupScript = "place_holder_clean_up.ps1"  # cleanup script
+    CleanupScript = "place_holder_clean_up.ps1"  # Cleanup script to run after removal
     User = $env:USERNAME
     ScriptDriveLetter = (Get-Location).Drive.Name + ":"
+    PathsJsonFile = "$ScriptDriveLetter\system\config\junctions.json"  
+}
+
+$ErrorActionPreference = 'Stop'
+
+function Check-SoftwareExists {
+    param (
+        [string]$SoftwareName,
+        [object]$PathMappings
+    )
+    
+    if ([string]::IsNullOrEmpty($SoftwareName)) {
+        return $true  #  processing all software
+    }
+    
+    return $PathMappings.PSObject.Properties.Name -contains $SoftwareName
 }
 
 function Show-LinkDetailedStatus {
     param ([string]$SoftwareFilter = $SoftwareFilter)
 
     $pathMappings = Get-Content -Raw -Path $global:Config.PathsJsonFile | ConvertFrom-Json
+    
+    if ($SoftwareFilter -and -not (Check-SoftwareExists -SoftwareName $SoftwareFilter -PathMappings $pathMappings)) {
+        Write-Host "Error: Software '$SoftwareFilter' doesn't exist in configuration file" -ForegroundColor Red
+        exit 1
+    }
 
     foreach ($software in $pathMappings.PSObject.Properties) {
         if ($SoftwareFilter -and $software.Name -ne $SoftwareFilter) { continue }
@@ -72,10 +92,17 @@ function Show-LinkDetailedStatus {
 
 function Show-LinkSummary {
     $pathMappings = Get-Content -Raw -Path $global:Config.PathsJsonFile | ConvertFrom-Json
+    
+    if ($SoftwareFilter -and -not (Check-SoftwareExists -SoftwareName $SoftwareFilter -PathMappings $pathMappings)) {
+        Write-Host "Error: Software '$SoftwareFilter' doesn't exist in configuration file" -ForegroundColor Red
+        exit 1
+    }
 
     $maxNameLength = ($pathMappings.PSObject.Properties.Name | Measure-Object -Maximum -Property Length).Maximum
 
     foreach ($software in $pathMappings.PSObject.Properties) {
+        if ($SoftwareFilter -and $software.Name -ne $SoftwareFilter) { continue }
+        
         $softwareName = $software.Name
         $totalPaths = $software.Value.Paths.Count
         $validLinks = 0
@@ -109,6 +136,12 @@ function Create-OrUpdateLinks {
     param ([string]$SoftwareFilter = $SoftwareFilter)
 
     $pathMappings = Get-Content -Raw -Path $global:Config.PathsJsonFile | ConvertFrom-Json
+    
+    if ($SoftwareFilter -and -not (Check-SoftwareExists -SoftwareName $SoftwareFilter -PathMappings $pathMappings)) {
+        Write-Host "Error: Software '$SoftwareFilter' doesn't exist in configuration file" -ForegroundColor Red
+        exit 1
+    }
+    
     $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 
     foreach ($software in $pathMappings.PSObject.Properties) {
@@ -163,6 +196,11 @@ function Remove-Links {
     param ([string]$SoftwareFilter = $SoftwareFilter)
 
     $pathMappings = Get-Content -Raw -Path $global:Config.PathsJsonFile | ConvertFrom-Json
+    
+    if ($SoftwareFilter -and -not (Check-SoftwareExists -SoftwareName $SoftwareFilter -PathMappings $pathMappings)) {
+        Write-Host "Error: Software '$SoftwareFilter' doesn't exist in configuration file" -ForegroundColor Red
+        exit 1
+    }
 
     foreach ($software in $pathMappings.PSObject.Properties) {
         if ($SoftwareFilter -and $software.Name -ne $SoftwareFilter) { continue }
@@ -195,7 +233,7 @@ function Remove-Links {
         Write-Host ""
     }
 
-    # cleanup script execution (uncomment to enable)
+    # Cleanup script execution (uncomment to enable)
     <#
     if (Test-Path $global:Config.CleanupScript) {
         Start-Process powershell.exe -ArgumentList "-File `"$($global:Config.CleanupScript)`"" -NoNewWindow
@@ -208,5 +246,8 @@ switch ($Mode.ToLower()) {
     "list"   { Show-LinkSummary }
     "create" { Create-OrUpdateLinks }
     "remove" { Remove-Links }
-    default  { Write-Host "Specify either 'status', 'list', 'create', or 'remove'" -ForegroundColor Yellow }
+    default  { 
+        Write-Host "Specify either 'status', 'list', 'create', or 'remove'" -ForegroundColor Yellow 
+        exit 1
+    }
 }

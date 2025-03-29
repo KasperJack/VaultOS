@@ -1,0 +1,11 @@
+ZeroPoint → A factory reset or cleanup script for maintaining the environment
+ Phantom → A module that redirects commands dynamically
+ Pylon → A networking or remote access component
+ Relay → A forwarding system for launching apps from different locations  // this one is done 
+
+
+
+ Pulse → A health check script that ensures everything is functioning.
+
+
+Echo → A diagnostic tool that outputs useful system information.
