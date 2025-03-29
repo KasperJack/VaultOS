@@ -1,0 +1,12 @@
+Allusion:
+  portable: false
+  category: Productivity
+  executable: Allusion.exe
+  junctions:
+    - C:\Users\$user\AppData\Roaming\Allusion
+    - C:\Users\$user\AppData\Local\Temp\Allusion\thumbnails
+
+AnotherSoftware:
+  portable: true
+  category: Utilities
+  executable: Another.exe

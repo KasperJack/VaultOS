@@ -1,13 +1,12 @@
 param (
     [Parameter(Position=0)]
-    [ValidateSet("status", "list", "create", "remove")]
-    [string]$Mode = "list",
+    [string]$Mode = "",
     
     [Parameter(Position=1)]
     [string]$SoftwareFilter = ""
 )
 
-# Global Configuration 
+# Global Configuration Section
 $global:Config = @{
     CleanupScript = "place_holder_clean_up.ps1"  # Cleanup script to run after removal
     User = $env:USERNAME
@@ -241,13 +240,24 @@ function Remove-Links {
     #>
 }
 
+#  if Mode parameter is empty
+if ([string]::IsNullOrEmpty($Mode)) {
+    Write-Host "You must specify an operation mode" -ForegroundColor Yellow
+    Write-Host "Specify either 'status', 'list', 'create', or 'remove'" -ForegroundColor Yellow
+    exit 1
+}
+
+#  if Mode is valid
+$validModes = @("status", "list", "create", "remove")
+if ($validModes -notcontains $Mode.ToLower()) {
+    Write-Host "Invalid operation mode '$Mode'" -ForegroundColor Yellow
+    Write-Host "Specify either 'status', 'list', 'create', or 'remove'" -ForegroundColor Yellow
+    exit 1
+}
+
 switch ($Mode.ToLower()) {
     "status" { Show-LinkDetailedStatus }
     "list"   { Show-LinkSummary }
     "create" { Create-OrUpdateLinks }
     "remove" { Remove-Links }
-    default  { 
-        Write-Host "Specify either 'status', 'list', 'create', or 'remove'" -ForegroundColor Yellow 
-        exit 1
-    }
 }
