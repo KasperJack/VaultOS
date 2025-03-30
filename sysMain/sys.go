@@ -7,19 +7,20 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"os/exec"
+
+	//"os/exec"
 	"gopkg.in/yaml.v3"
 )
 
 // Configuration paths
 var (
-	DriveLetter   string
-	PackageDir    string
-	SoftwareYAML  string
-	JunctionsJSON string
-	AppsDir       string
-	GamesDir      string
-	AppsShortcutsDir string
+	DriveLetter       string
+	PackageDir        string
+	SoftwareYAML      string
+	JunctionsJSON     string
+	AppsDir           string
+	GamesDir          string
+	AppsShortcutsDir  string
 	GamesShortcutsDir string
 )
 
@@ -57,15 +58,9 @@ func initPaths() {
 	JunctionsJSON = filepath.Join(DriveLetter, "\\system\\config\\junctions.json")
 	AppsDir = filepath.Join(DriveLetter, "\\system\\software\\apps")
 	GamesDir = filepath.Join(DriveLetter, "\\system\\software\\games")
-	AppsShortcutsDir = filepath.Join(DriveLetter, "\\games")
-	GamesShortcutsDir = filepath.Join(DriveLetter, "\\apps")
+	AppsShortcutsDir = filepath.Join(DriveLetter, "\\apps")
+	GamesShortcutsDir = filepath.Join(DriveLetter, "\\games")
 }
-
-
-
-
-
-
 
 func main() {
 	// Initialize paths
@@ -96,13 +91,6 @@ func main() {
 	}
 }
 
-
-
-
-
-
-
-
 func installPortable(softwareName, category, executable, currentPath string) {
 	var destDir string
 	// Determine the destination directory based on the category
@@ -121,10 +109,8 @@ func installPortable(softwareName, category, executable, currentPath string) {
 	// New executable path
 	TrueexecutablePath := filepath.Join(destDir, executable)
 
-
 	relativeDest := strings.TrimPrefix(destDir, DriveLetter)
 	executablePath := filepath.Join("drive:"+relativeDest, executable)
-
 
 	// Load existing YAML file (if it exists)
 	config := make(SoftwareConfig)
@@ -154,62 +140,22 @@ func installPortable(softwareName, category, executable, currentPath string) {
 	}
 
 	if strings.EqualFold(category, "game") {
-		createShortcut(TrueexecutablePath,GamesShortcutsDir)
-		
+		createShortcut(TrueexecutablePath, GamesShortcutsDir)
+
 	} else {
-		createShortcut(TrueexecutablePath,AppsShortcutsDir)
+		createShortcut(TrueexecutablePath, AppsShortcutsDir)
 	}
-
-
-
-	
 
 	// Print the new location of the directory
 	fmt.Printf("New location: %s\n", destDir)
 }
 
-
-
-
-
-
-
-
-
-
-
 func createShortcut(source, destination string) error {
-	// Ensure destination directory exists
-	destDir := filepath.Dir(destination)
-	if err := os.MkdirAll(destDir, 0755); err != nil {
-		return fmt.Errorf("failed to create destination directory: %v", err)
-	}
-
-	// PowerShell command to create shortcut
-	psScript := fmt.Sprintf(
-		`$ws = New-Object -ComObject WScript.Shell; `+
-		`$s = $ws.CreateShortcut("%s"); `+
-		`$s.TargetPath = "%s"; `+
-		`$s.Save()`,
-		destination, source)
-
-	cmd := exec.Command("powershell", "-Command", psScript)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("PowerShell command failed: %v", err)
-	}
+	fmt.Println(source)
+	fmt.Println(destination)
 
 	return nil
 }
-
-
-
-
-
-
-
 
 // installNonPortable processes a non-portable software installation.
 // It prints out the software name, category, executable, the current directory, and each junction.
@@ -403,4 +349,3 @@ func installSoftware(name string) {
 }
 
 // ... (rest of the code remains unchanged)
-
