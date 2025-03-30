@@ -20,8 +20,8 @@ setx JUNCTIONS_JSON "%JUNCTIONS_JSON%"
 setx APPS_DIR "%APPS_DIR%"
 setx GAMES_DIR "%GAMES_DIR%"
 setx APPS_SHORTCUTS_DIR "%APPS_SHORTCUTS_DIR%"
-setx APPS_SHORTCUTS_DIR "%GAMES_SHORTCUTS_DIR%"
+setx GAMES_SHORTCUTS_DIR "%GAMES_SHORTCUTS_DIR%"
 setx PS_SCRIPTS_DIR "%PS_SCRIPTS_DIR%"
 setx LINK_PS "%LINK_PS%"
 
-echo Environment variables initialized, including PS_SCRIPTS_DIR and link.ps1.
+echo Environment variables initialized,
