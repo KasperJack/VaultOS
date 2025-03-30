@@ -6,7 +6,7 @@ Allusion:
     - C:\Users\$user\AppData\Roaming\Allusion
     - C:\Users\$user\AppData\Local\Temp\Allusion\thumbnails
 
-AnotherSoftware:
-  portable: true
-  category: Utilities
-  executable: Another.exe
+Software:
+  portable: true   // becuse we are in porable instalation 
+  category: the category
+  executable: destDir\executable

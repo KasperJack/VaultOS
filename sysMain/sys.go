@@ -57,6 +57,12 @@ func initPaths() {
 	GamesDir = filepath.Join(DriveLetter, "\\System\\software\\games")
 }
 
+
+
+
+
+
+
 func main() {
 	// Initialize paths
 	initPaths()
@@ -86,15 +92,70 @@ func main() {
 	}
 }
 
-// installPortable processes a portable software installation.
-// It prints out the software name, category, executable, and the current directory (where the YAML is).
+
+
+
+
+
+
+
 func installPortable(softwareName, category, executable, currentPath string) {
-	fmt.Println("Installing Portable Software:")
-	fmt.Printf("  Software Name: %s\n", softwareName)
-	fmt.Printf("  Category: %s\n", category)
-	fmt.Printf("  Executable: %s\n", executable)
-	fmt.Printf("  YAML Directory: %s\n", currentPath)
+	var destDir string
+	// Determine the destination directory based on the category
+	if strings.EqualFold(category, "game") {
+		destDir = filepath.Join(GamesDir, filepath.Base(currentPath))
+	} else {
+		destDir = filepath.Join(AppsDir, filepath.Base(currentPath))
+	}
+
+	// Move the directory from currentPath to destDir
+	if err := os.Rename(currentPath, destDir); err != nil {
+		fmt.Printf("Error moving directory from '%s' to '%s': %v\n", currentPath, destDir, err)
+		os.Exit(1)
+	}
+
+	// New executable path
+	executablePath := filepath.Join(destDir, executable)
+
+	// Load existing YAML file (if it exists)
+	config := make(SoftwareConfig)
+	yamlData, err := os.ReadFile(SoftwareYAML)
+	if err == nil {
+		_ = yaml.Unmarshal(yamlData, &config) // Ignore errors, assume empty if invalid
+	}
+
+	// Add the new software entry
+	config[softwareName] = SoftwareDetails{
+		Portable:   true,
+		Category:   category,
+		Executable: executablePath,
+	}
+
+	// Save the updated configuration back to YAML
+	newYamlData, err := yaml.Marshal(&config)
+	if err != nil {
+		fmt.Printf("Error encoding YAML: %v\n", err)
+		os.Exit(1)
+	}
+
+	err = os.WriteFile(SoftwareYAML, newYamlData, 0644)
+	if err != nil {
+		fmt.Printf("Error writing YAML file: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Print the new location of the directory
+	fmt.Printf("New location: %s\n", destDir)
 }
+
+
+
+
+
+
+
+
+
 
 // installNonPortable processes a non-portable software installation.
 // It prints out the software name, category, executable, the current directory, and each junction.
