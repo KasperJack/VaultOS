@@ -1,15 +1,27 @@
 @echo off
-REM Get current drive letter
-set CURRENT_DRIVE=%~d0
+:: Get the current script's drive letter
+set DRIVE=%~d0
 
-REM Set environment variables for your portable system
-setx PORT_DRIVE "%CURRENT_DRIVE%"
-setx PORT_ROOT "%CURRENT_DRIVE%\YourSystemRoot"
-setx PORT_BIN "%CURRENT_DRIVE%\YourSystemRoot\bin"
-setx PORT_LIB "%CURRENT_DRIVE%\YourSystemRoot\lib"
-setx PORT_CONFIG "%CURRENT_DRIVE%\YourSystemRoot\config"
-setx PORT_DATA "%CURRENT_DRIVE%\YourSystemRoot\data"
+:: Define environment variables
+set PACKAGE_DIR=%DRIVE%\system\package
+set SOFTWARE_YAML=%DRIVE%\system\config\software.yaml
+set JUNCTIONS_JSON=%DRIVE%\system\config\junctions.json
+set APPS_DIR=%DRIVE%\system\software\apps
+set GAMES_DIR=%DRIVE%\system\software\games
+set APPS_SHORTCUTS_DIR=%DRIVE%\apps
+set GAMES_SHORTCUTS_DIR=%DRIVE%\games
+set PS_SCRIPTS_DIR=%DRIVE%\system\scripts
+set LINK_PS=%PS_SCRIPTS_DIR%\link.ps1
 
-REM Notify user
-echo Environment variables set for portable system.
-echo Please open a new command prompt window to use your portable system.
+:: Set the environment variables permanently for future processes
+setx PACKAGE_DIR "%PACKAGE_DIR%"
+setx SOFTWARE_YAML "%SOFTWARE_YAML%"
+setx JUNCTIONS_JSON "%JUNCTIONS_JSON%"
+setx APPS_DIR "%APPS_DIR%"
+setx GAMES_DIR "%GAMES_DIR%"
+setx APPS_SHORTCUTS_DIR "%APPS_SHORTCUTS_DIR%"
+setx APPS_SHORTCUTS_DIR "%GAMES_SHORTCUTS_DIR%"
+setx PS_SCRIPTS_DIR "%PS_SCRIPTS_DIR%"
+setx LINK_PS "%LINK_PS%"
+
+echo Environment variables initialized, including PS_SCRIPTS_DIR and link.ps1.

@@ -7,13 +7,12 @@ import (
 )
 
 func main() {
-    // Check if our environment variables are set
-    portDrive := os.Getenv("A_DRIVE")
+    portDrive := os.Getenv("VAR_DRIVE")
     if portDrive == "" {
         fmt.Println("Environment not initialized. Initializing...")
         
         // Run the batch file to set up environment
-        cmd := exec.Command("cmd", "/c", ".\\init.bat")
+        cmd := exec.Command("cmd", "/c", "path\\init.bat")
         err := cmd.Run()
         if err != nil {
             fmt.Printf("Failed to initialize environment: %v\n", err)
