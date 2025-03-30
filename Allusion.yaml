@@ -9,4 +9,10 @@ Allusion:
 Software:
   portable: true   // becuse we are in porable instalation 
   category: the category
-  executable: destDir\executable
+  executable: drive:\destDir\executable
+
+
+
+shortcut
+
+	AppsShortcutDir

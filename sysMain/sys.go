@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
+	"os/exec"
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,6 +19,8 @@ var (
 	JunctionsJSON string
 	AppsDir       string
 	GamesDir      string
+	AppsShortcutsDir string
+	GamesShortcutsDir string
 )
 
 // SoftwareConfig represents the structure of the YAML configuration file
@@ -54,7 +56,9 @@ func initPaths() {
 	SoftwareYAML = filepath.Join(DriveLetter, "\\system\\config\\software.yaml")
 	JunctionsJSON = filepath.Join(DriveLetter, "\\system\\config\\junctions.json")
 	AppsDir = filepath.Join(DriveLetter, "\\system\\software\\apps")
-	GamesDir = filepath.Join(DriveLetter, "\\System\\software\\games")
+	GamesDir = filepath.Join(DriveLetter, "\\system\\software\\games")
+	AppsShortcutsDir = filepath.Join(DriveLetter, "\\games")
+	GamesShortcutsDir = filepath.Join(DriveLetter, "\\apps")
 }
 
 
@@ -115,7 +119,12 @@ func installPortable(softwareName, category, executable, currentPath string) {
 	}
 
 	// New executable path
-	executablePath := filepath.Join(destDir, executable)
+	TrueexecutablePath := filepath.Join(destDir, executable)
+
+
+	relativeDest := strings.TrimPrefix(destDir, DriveLetter)
+	executablePath := filepath.Join("drive:"+relativeDest, executable)
+
 
 	// Load existing YAML file (if it exists)
 	config := make(SoftwareConfig)
@@ -144,11 +153,56 @@ func installPortable(softwareName, category, executable, currentPath string) {
 		os.Exit(1)
 	}
 
+	if strings.EqualFold(category, "game") {
+		createShortcut(TrueexecutablePath,GamesShortcutsDir)
+		
+	} else {
+		createShortcut(TrueexecutablePath,AppsShortcutsDir)
+	}
+
+
+
+	
+
 	// Print the new location of the directory
 	fmt.Printf("New location: %s\n", destDir)
 }
 
 
+
+
+
+
+
+
+
+
+
+func createShortcut(source, destination string) error {
+	// Ensure destination directory exists
+	destDir := filepath.Dir(destination)
+	if err := os.MkdirAll(destDir, 0755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %v", err)
+	}
+
+	// PowerShell command to create shortcut
+	psScript := fmt.Sprintf(
+		`$ws = New-Object -ComObject WScript.Shell; `+
+		`$s = $ws.CreateShortcut("%s"); `+
+		`$s.TargetPath = "%s"; `+
+		`$s.Save()`,
+		destination, source)
+
+	cmd := exec.Command("powershell", "-Command", psScript)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("PowerShell command failed: %v", err)
+	}
+
+	return nil
+}
 
 
 
