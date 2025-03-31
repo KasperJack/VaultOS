@@ -2,8 +2,6 @@ package cmd
 
 import "fmt"
 
-// installNonPortable processes a non-portable software installation.
-// It prints out the software name, category, executable, the current directory, and each junction.
 func installNonPortable(softwareName, category, executable, currentPath string, junctions []string) {
 	fmt.Println("Installing Non-Portable Software:")
 	fmt.Printf("  Software Name: %s\n", softwareName)

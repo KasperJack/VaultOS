@@ -12,7 +12,6 @@ import (
 )
 
 
-// Function to handle software installation
 func Install(args []string) {
 
 
@@ -25,9 +24,9 @@ func Install(args []string) {
 	fmt.Printf("Installing package: %s\n", name)
 
 
+		// unesacaryy logic change thid block
 
-
-	// First, try to use the original case version for directory and file access
+	//  original case version for directory and file access
 	softwareDir := filepath.Join(config.PackageDir, name)
 	_, err := os.Stat(softwareDir)
 
@@ -39,24 +38,24 @@ func Install(args []string) {
 		_, err = os.Stat(softwareDirCap)
 
 		if err == nil {
-			// Found with capitalized first letter
+			//  with capitalized first letter
 			name = capitalized
 			softwareDir = softwareDirCap
 		} else {
-			// Check for all uppercase version
+			// check  all uppercase version
 			uppercase := strings.ToUpper(name)
 			softwareDirUpper := filepath.Join(config.PackageDir, uppercase)
 			_, err = os.Stat(softwareDirUpper)
 
 			if err == nil {
-				// Found with all uppercase
+				// found with all uppercase
 				name = uppercase
 				softwareDir = softwareDirUpper
 			}
 		}
 	}
 
-	// Check if the software package directory exists after potential case adjustments
+	// if the software package directory exists after potential case adjustments
 	dirInfo, err := os.Stat(softwareDir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -75,7 +74,14 @@ func Install(args []string) {
 
 	fmt.Printf("Found software package directory: %s\n", softwareDir)
 
-	// Check for the yaml file matching the software name
+
+
+
+
+
+
+
+	// chheck for the yaml file matching the software name
 	yamlFile := filepath.Join(softwareDir, name+".yaml")
 	_, err = os.Stat(yamlFile)
 	if err != nil {
@@ -110,7 +116,7 @@ func Install(args []string) {
 
 	fmt.Printf("Found software configuration file: %s\n", yamlFile)
 
-	// Read and parse the YAML file
+	//  parse the YAML file
 	yamlData, err := os.ReadFile(yamlFile)
 	if err != nil {
 		fmt.Printf("Error reading YAML file: %v\n", err)
@@ -129,11 +135,10 @@ func Install(args []string) {
 
 	fmt.Printf("YAML file parsed successfully\n")
 
-	// Try to find the software name in the YAML, checking different case variants
-	// First, try direct match
+	// find the software 
 	details, exists := config[name]
 
-	// If not found, try case-insensitive search
+	// case-insensitive search
 	if !exists {
 		actualKey := ""
 		for key := range config {
@@ -152,11 +157,14 @@ func Install(args []string) {
 		fmt.Printf("Software '%s' found in YAML configuration\n", name)
 	}
 
-	// Exit if software not found after case-insensitive search
+	//  software not found after case-insensitive search
 	if !exists {
 		fmt.Printf("Error: Software name '%s' not found in YAML configuration\n", name)
 		os.Exit(1)
 	}
+
+
+
 
 	// Check for required fields
 	if details.Executable == "" {
