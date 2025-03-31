@@ -10,7 +10,6 @@ import (
 func List() {
 
 
-	config.InitPaths()
 
 
 	fmt.Println("DriveLetter",config.DriveLetter)

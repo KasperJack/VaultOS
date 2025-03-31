@@ -24,7 +24,6 @@ func Install(args []string) {
 	name := args[0]
 	fmt.Printf("Installing package: %s\n", name)
 
-	config.InitPaths()
 
 
 
