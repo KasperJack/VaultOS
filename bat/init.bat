@@ -23,7 +23,7 @@ REM Process the argument (case-insensitive comparison)
 if /I "%~1"=="setx" (
   echo Setting environment variables...
   REM setx creates or updates the user environment variables.
-  setx Drive_Letter "%DRIVE%"
+  setx DRIVE_LETTER "%DRIVE%"
   setx PACKAGE_DIR "%PACKAGE_DIR%"
   setx SOFTWARE_YAML "%SOFTWARE_YAML%"
   setx JUNCTIONS_JSON "%JUNCTIONS_JSON%"
@@ -37,7 +37,7 @@ if /I "%~1"=="setx" (
 ) else if /I "%~1"=="unsetx" (
   echo Removing environment variables...
   REM Removing environment variables by deleting them from the registry
-  reg delete "HKCU\Environment" /f /v Drive_Letter
+  reg delete "HKCU\Environment" /f /v DRIVE_LETTER
   reg delete "HKCU\Environment" /f /v PACKAGE_DIR
   reg delete "HKCU\Environment" /f /v SOFTWARE_YAML
   reg delete "HKCU\Environment" /f /v JUNCTIONS_JSON

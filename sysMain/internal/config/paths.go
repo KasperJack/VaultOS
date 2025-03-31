@@ -41,7 +41,7 @@ func init() {
 	DriveLetter = strings.Split(ex, ":")[0] + ":"
 	
 
-	if os.Getenv("Drive_Letter") != DriveLetter {
+	if os.Getenv("DRIVE_LETTER") != DriveLetter {
 		fmt.Println("Environment not initialized. Running init.bat...")
 
 
