@@ -1,0 +1,8 @@
+Allusion:
+    portable: true
+    category: editor
+    executable: drive:\system\software\apps\Allusion\Allusion.exe
+farcry:
+    portable: true
+    category: game
+    executable: drive:\system\software\games\farcry\farcry.exe

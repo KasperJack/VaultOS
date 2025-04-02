@@ -6,13 +6,14 @@ Allusion:
     - C:\Users\$user\AppData\Roaming\Allusion
     - C:\Users\$user\AppData\Local\Temp\Allusion\thumbnails
 
+
+
+# or portable
+
+
 Software:
-  portable: true   // becuse we are in porable instalation 
+  portable: true
   category: the category
-  executable: drive:\destDir\executable
+  executable: Software.exe
 
 
-
-shortcut
-
-	AppsShortcutDir

@@ -1,5 +1,4 @@
 @echo off
-REM Get the drive letter from the current directory where the batch file is running
 set "CURR_DRIVE=%~d0"
 
 
@@ -7,7 +6,7 @@ echo %CURR_DRIVE%
 echo %DRIVE_LETTER%
 
 
-REM Compare current drive with environment variable DRIVE_LETTER
+REM  current drive with environment variable DRIVE_LETTER ??
 if /I not "%DRIVE_LETTER%"=="%CURR_DRIVE%" (
     echo Running initialization script...
     call init.bat setx

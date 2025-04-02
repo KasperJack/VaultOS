@@ -1,11 +1,10 @@
 @echo off
-REM if an argument was provided
+
 if "%~1"=="" (
   echo Usage: %0 [setx^|unsetx]
   goto :eof
 )
 
-REM current script drive letter
 set "DRIVE=%~d0"
 
 REM  variables 
@@ -19,10 +18,8 @@ set "GAMES_SHORTCUTS_DIR=%DRIVE%\games"
 set "PS_SCRIPTS_DIR=%DRIVE%\system\scripts\ps"
 set "LINK_PS=%PS_SCRIPTS_DIR%\link.ps1"
 
-REM the argument
 if /I "%~1"=="setx" (
   echo Setting environment variables...
-  REM setx creates or updates the user environment variables.
   setx DRIVE_LETTER "%DRIVE%"
   setx PACKAGE_DIR "%PACKAGE_DIR%"
   setx SOFTWARE_YAML "%SOFTWARE_YAML%"
@@ -36,7 +33,6 @@ if /I "%~1"=="setx" (
   echo Environment variables have been initialized.
 ) else if /I "%~1"=="unsetx" (
   echo Removing environment variables...
-  REM deleting them from the registry
   reg delete "HKCU\Environment" /f /v DRIVE_LETTER
   reg delete "HKCU\Environment" /f /v PACKAGE_DIR
   reg delete "HKCU\Environment" /f /v SOFTWARE_YAML
@@ -49,5 +45,5 @@ if /I "%~1"=="setx" (
   reg delete "HKCU\Environment" /f /v LINK_PS
   echo Environment variables have been removed.
 ) else (
-  echo Invalid argument: %1. Please use "setx" to set or "unsetx" to remove the variables.
+  echo Invalid argument: %1.  use "setx" to set or "unsetx" to remove the variables.
 )

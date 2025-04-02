@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"os/exec"
+	//"os/exec"
 )
 
 
@@ -42,29 +42,30 @@ func init() {
 	
 
 	if os.Getenv("DRIVE_LETTER") != DriveLetter {
-		fmt.Println("Environment not initialized. Running init.bat...")
+
+		fmt.Printf("environment variables miss-match")
+		os.Exit(1)
 
 
 
-		batfile:= DriveLetter + "\\system\\config\\init.bat"
-		if _, err := os.Stat(batfile); os.IsNotExist(err) {
-			fmt.Printf("init script  not found: %s\n", batfile)
-			os.Exit(1)
-		}
+		//batfile:= DriveLetter + "\\system\\config\\init.bat"
+		//if _, err := os.Stat(batfile); os.IsNotExist(err) {
+		//	fmt.Printf("init script  not found: %s\n", batfile)
+		//	os.Exit(1)
+		//}
 
-		cmd := exec.Command("cmd", "/C", batfile, "setx")
-		cmd.Stdout = os.Stdout 
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			fmt.Printf("Failed to initialize environment: %v\n", err)
-			os.Exit(1)
-		}
+		//cmd := exec.Command("cmd", "/C", batfile, "setx")
+		//cmd.Stdout = os.Stdout 
+		//cmd.Stderr = os.Stderr
+		//err := cmd.Run()
+		//if err != nil {
+		//	fmt.Printf("Failed to initialize environment: %v\n", err)
+		//	os.Exit(1)
+		//}
 
 
 
-		fmt.Printf("run the tool again")
-		os.Exit(0)
+		
 
 
 

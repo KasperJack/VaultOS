@@ -11,5 +11,4 @@ func Remove(args []string) {
 	packageName := args[0]
 	fmt.Printf("removing package: %s\n", packageName)
 
-	// Package installation logic goes here...
 }

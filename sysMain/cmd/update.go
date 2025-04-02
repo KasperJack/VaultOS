@@ -11,5 +11,4 @@ func Update(args []string) {
 	packageName := args[0]
 	fmt.Printf("updating package: %s\n", packageName)
 
-	// Package installation logic goes here...
 }
