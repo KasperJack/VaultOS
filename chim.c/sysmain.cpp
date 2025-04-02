@@ -1,48 +1,64 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <map>
-#include <vector>
-#include <cstdlib>
-
-#ifdef _WIN32
 #include <windows.h>
-#include <process.h>
-#else
-#include <unistd.h>
-#endif
+#include <iostream>
+#include <sstream>
 
-//read environment variables from a file
-std::map<std::string, std::string> readEnvVarsFromFile(const std::string& filePath);
 
-//  set environment variables in the current process
-void setEnvironmentVariables(const std::map<std::string, std::string>& envVars);
+char targetPath[MAX_PATH];
 
-//execute the target program
-bool executeTargetProgram(const std::string& programPath, const std::vector<std::string>& args);
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <env_file_path> <target_executable> [args...]" << std::endl;
+
+
+    GetModuleFileName(NULL, targetPath, MAX_PATH);
+
+    char* lastSlash = strrchr(targetPath, '\\');
+    if (lastSlash) *(lastSlash + 1) = '\0'; 
+
+    strcat(targetPath, "sys.exe");
+
+    std::cout << "Running: " << targetPath << std::endl;
+
+
+
+    std::ostringstream cmdLineStream;
+    cmdLineStream << targetPath;
+    
+    if (argc > 1) {
+        for (int i = 1; i < argc; ++i) {
+            cmdLineStream << " " << argv[i];
+        }
+    }
+    
+    std::string cmdLine = cmdLineStream.str();
+
+    STARTUPINFO si = { sizeof(si) };
+    PROCESS_INFORMATION pi;
+
+    BOOL success = CreateProcess(
+        NULL,                               
+        const_cast<char*>(cmdLine.c_str()), 
+        NULL,                               
+        NULL,                              
+        TRUE,                               
+        0,                                  
+        NULL,                               
+        NULL,                               
+        &si,                                
+        &pi                                 
+    );
+
+    if (!success) {
+        std::cerr << "Failed to launch CLI tool. Error code: " << GetLastError() << std::endl;
         return 1;
     }
 
-    std::string envFilePath = argv[1];
-    std::string targetProgram = argv[2];
-    
-    std::vector<std::string> programArgs;
-    for (int i = 2; i < argc; i++) {
-        programArgs.push_back(argv[i]);
-    }
+    WaitForSingleObject(pi.hProcess, INFINITE);
 
-    auto envVars = readEnvVarsFromFile(envFilePath);
-    
-    setEnvironmentVariables(envVars);
-    
-    if (!executeTargetProgram(targetProgram, programArgs)) {
-        std::cerr << "Failed to execute target program: " << targetProgram << std::endl;
-        return 1;
-    }
-    
-    return 0;
+    DWORD exitCode;
+    GetExitCodeProcess(pi.hProcess, &exitCode);
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return exitCode;
 }
